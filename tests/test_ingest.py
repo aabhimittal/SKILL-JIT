@@ -45,6 +45,26 @@ def test_spec_violations_recorded_not_raised(tmp_path, fm, issue):
     assert any(i.startswith(issue) for i in s.issues), s.issues
 
 
+def test_symlinked_license_outside_root_ignored(tmp_path):
+    secret = tmp_path / "secret.txt"
+    secret.write_text("TOP SECRET")
+    p = write_skill(tmp_path / "repo", "s", "name: s\ndescription: d")
+    (p.parent / "LICENSE").symlink_to(secret)
+    s = parse_skill(p, root=tmp_path / "repo")
+    assert s.license is None and s.license_file is None
+
+
+def test_yaml_alias_bomb_rejected(tmp_path):
+    bomb = "name: s\ndescription: d\nmetadata:\n  a: &a [x, x, x, x, x, x, x, x, x]\n  b: &b [*a, *a, *a, *a, *a, *a, *a, *a, *a]\n  c: [*b, *b, *b, *b, *b, *b, *b, *b, *b]"
+    with pytest.raises(SkillParseError, match="aliases"):
+        parse_skill(write_skill(tmp_path, "s", bomb))
+
+
+def test_oversized_frontmatter_rejected(tmp_path):
+    with pytest.raises(SkillParseError, match="frontmatter >"):
+        parse_skill(write_skill(tmp_path, "s", "name: s\ndescription: " + "x" * 20_000))
+
+
 def test_multiline_description_collapsed(tmp_path):
     s = parse_skill(write_skill(tmp_path, "s", "name: s\ndescription: >\n  line one\n  line two"))
     assert s.description == "line one line two"

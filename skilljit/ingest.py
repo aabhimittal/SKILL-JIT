@@ -20,6 +20,7 @@ SKILL_FILE = "SKILL.md"
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 FRONTMATTER_RE = re.compile(r"\A﻿?---[ \t]*\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\Z)", re.S)
 LICENSE_GLOBS = ("LICENSE*", "LICENCE*", "COPYING*")
+MAX_FRONTMATTER = 16_384
 
 
 class SkillParseError(ValueError):
@@ -83,7 +84,8 @@ def find_license_file(skill_dir: Path, root: Path) -> Path | None:
     root = root.resolve()
     while True:
         for g in LICENSE_GLOBS:
-            hits = sorted(p for p in d.glob(g) if p.is_file())
+            # untrusted repos: a LICENSE symlink to e.g. /etc/passwd must not leak into the corpus
+            hits = sorted(p for p in d.glob(g) if p.is_file() and p.resolve().is_relative_to(root))
             if hits:
                 return hits[0]
         if d == root or d.parent == d:
@@ -111,7 +113,12 @@ def parse_skill(skill_md: Path, root: Path | None = None) -> Skill:
     m = FRONTMATTER_RE.match(text)
     if not m:
         raise SkillParseError(f"{skill_md}: no YAML frontmatter")
+    if len(m.group(1)) > MAX_FRONTMATTER:
+        raise SkillParseError(f"{skill_md}: frontmatter > {MAX_FRONTMATTER} chars")
     try:
+        # aliases are legit YAML but enable billion-laughs blowup once json.dumps expands shared refs
+        if any(isinstance(t, yaml.AliasToken) for t in yaml.scan(m.group(1))):
+            raise SkillParseError(f"{skill_md}: YAML aliases not allowed in frontmatter")
         fm = yaml.safe_load(m.group(1)) or {}
     except yaml.YAMLError as e:
         raise SkillParseError(f"{skill_md}: bad YAML: {e}") from e
