@@ -1,0 +1,49 @@
+{"id": "t01", "task": "My expense report came back as three separate scans; stitch them into a single file and pull out the totals table.", "needed": ["pdf"]}
+{"id": "t02", "task": "Build a quarterly budget workbook where formulas roll the monthly numbers up into a summary tab.", "needed": ["xlsx"]}
+{"id": "t03", "task": "Turn these meeting notes into a ten-slide deck for Friday's all-hands.", "needed": [["pptx", "scientific-slides"]]}
+{"id": "t04", "task": "In the contract I sent, accept every tracked change and add page numbers in the footer. It's a Word file.", "needed": ["docx"]}
+{"id": "t05", "task": "I want our agent to be able to query our internal Jira through a Model Context Protocol server. Build it.", "needed": ["mcp-builder"]}
+{"id": "t06", "task": "Click through the signup flow on my dev server at localhost:3000 and grab screenshots of each step to confirm it works.", "needed": ["webapp-testing"]}
+{"id": "t07", "task": "Our login endpoint started returning 500s after yesterday's deploy and I can't figure out why.", "needed": [["systematic-debugging", "diagnosing-bugs"]]}
+{"id": "t08", "task": "Add ISO-8601 date parsing to our Python library, writing the failing test before the code.", "needed": [["tdd", "test-driven-development"]]}
+{"id": "t09", "task": "Throw millions of random inputs at our C image decoder until it crashes.", "needed": [["libfuzzer", "aflpp"]]}
+{"id": "t10", "task": "Get our open-source Rust crate onto Google's continuous fuzzing service.", "needed": ["ossfuzz"]}
+{"id": "t11", "task": "Check our Solana program for missing signer and owner checks before mainnet.", "needed": ["solana-vulnerability-scanner"]}
+{"id": "t12", "task": "Is our AES code leaking key bits depending on how long operations take?", "needed": [["constant-time-analysis", "constant-time-testing"]]}
+{"id": "t13", "task": "Write a detection signature that catches this ransomware family across its variants.", "needed": ["yara-rule-authoring"]}
+{"id": "t14", "task": "Run a static analysis security scan over this repo with community rulesets and summarize what it finds.", "needed": [["semgrep", "codeql"]]}
+{"id": "t15", "task": "I have an .h5ad file from a 10x experiment: filter low-quality cells, cluster them and show me a UMAP.", "needed": ["scanpy"]}
+{"id": "t16", "task": "Which genes change between treated and control samples in my bulk RNA count matrix?", "needed": ["pydeseq2"]}
+{"id": "t17", "task": "Filter this list of SMILES strings down to drug-like compounds and drop the PAINS hits.", "needed": [["medchem", "rdkit", "datamol"]]}
+{"id": "t18", "task": "Prepare a two-qubit Bell state and run it on IBM's quantum hardware.", "needed": ["qiskit"]}
+{"id": "t19", "task": "Fit a hierarchical Bayesian model of test scores across schools and check the sampler converged.", "needed": ["pymc"]}
+{"id": "t20", "task": "How many participants do I need to detect an effect size of 0.3 with 80% power?", "needed": ["statistical-power"]}
+{"id": "t21", "task": "Find recent papers on CRISPR base editing and give me the references as a BibTeX file.", "needed": [["paper-lookup", "literature-review", "research-lookup"], ["citation-management", "pyzotero"]]}
+{"id": "t22", "task": "Align Llama to my preference pairs with DPO and push the result to the Hub.", "needed": [["trl-training", "huggingface-llm-trainer"]]}
+{"id": "t23", "task": "Put this Hugging Face model behind a SageMaker endpoint.", "needed": [["hf-cloud-sagemaker-deployment-planner", "hf-cloud-sagemaker-production-defaults"]]}
+{"id": "t24", "task": "Make a small web demo for my image classifier and host it on a Space.", "needed": [["huggingface-gradio", "huggingface-spaces"]]}
+{"id": "t25", "task": "Will this 70B GGUF checkpoint fit on my 24GB GPU?", "needed": ["hf-mem"]}
+{"id": "t26", "task": "Make a generative art piece with flowing particle trails that I can tweak with sliders.", "needed": ["algorithmic-art"]}
+{"id": "t27", "task": "Create a small animated celebration loop for our Slack channel on launch day.", "needed": ["slack-gif-creator"]}
+{"id": "t28", "task": "Draft this week's status update for leadership.", "needed": ["internal-comms"]}
+{"id": "t29", "task": "I want to teach the agent our deploy process as a reusable skill it can load.", "needed": [["skill-creator", "writing-skills"]]}
+{"id": "t30", "task": "Write the description for the pull request I'm about to open.", "needed": ["pr"]}
+{"id": "t31", "task": "Before I merge, look over the diff on this branch for bugs.", "needed": [["code-review", "review-pr", "requesting-code-review"]]}
+{"id": "t32", "task": "Here's my plan for migrating the database. Poke holes in it, hard.", "needed": [["grilling", "grill-me"]]}
+{"id": "t33", "task": "Plan out a multi-week refactor that won't fit in a single agent session.", "needed": [["wayfinder", "writing-plans"]]}
+{"id": "t34", "task": "Stop the agent from ever running git push --force or git reset --hard.", "needed": ["git-guardrails-claude-code"]}
+{"id": "t35", "task": "Set up a new Python project with uv and ruff.", "needed": ["modern-python"]}
+{"id": "t36", "task": "Forecast next quarter's daily sales from history without training a model myself.", "needed": ["timesfm-forecasting"]}
+{"id": "t37", "task": "Explain which features drove my gradient-boosted model's predictions for this customer.", "needed": ["shap"]}
+{"id": "t38", "task": "Make a journal-quality multi-panel figure from my experiment results.", "needed": [["scientific-visualization", "matplotlib", "seaborn"]]}
+{"id": "t39", "task": "Draft an NIH R01 application for my lab's next project.", "needed": ["research-grants"]}
+{"id": "t40", "task": "Our crypto library might leave secret keys sitting in memory after use. Check it.", "needed": ["zeroize-audit"]}
+{"id": "t41", "task": "Convert this folder of Word and PowerPoint files into Markdown so we can index them.", "needed": ["markitdown"]}
+{"id": "t42", "task": "Write code that calls Claude to sort incoming support tickets into categories.", "needed": ["claude-api"]}
+{"id": "t43", "task": "Write property-based tests for our parser, then find out which mutations the suite fails to kill.", "needed": ["property-based-testing", "mutation-testing"]}
+{"id": "t44", "task": "Turn our survey results spreadsheet into a slide deck with charts.", "needed": ["xlsx", ["pptx", "scientific-slides"]]}
+{"id": "n01", "task": "What's the capital of Australia?", "needed": []}
+{"id": "n02", "task": "Rename the variable tmp to buffer in main.go.", "needed": []}
+{"id": "n03", "task": "Write a haiku about autumn rain.", "needed": []}
+{"id": "n04", "task": "Explain the difference between a mutex and a semaphore.", "needed": []}
+{"id": "n05", "task": "Convert 72 degrees Fahrenheit to Celsius.", "needed": []}

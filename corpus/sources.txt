@@ -1,0 +1,9 @@
+# Pinned public skill repos: <dir> <git url> <commit sha> <license>
+# Fetch with scripts/fetch_corpus.sh; repos are cloned, never vendored.
+# Excluded: ComposioHQ/awesome-claude-skills (no license; ~860 generated app-connector wrappers would dominate the pool).
+anthropics-skills https://github.com/anthropics/skills.git ca45fc496a3436251f191354091d557da31c15b5 per-skill-LICENSE.txt
+obra-superpowers https://github.com/obra/superpowers.git 22f0b463e7a5e579904dd6211a520321035526f7 MIT
+k-dense-scientific https://github.com/K-Dense-AI/claude-scientific-skills.git a25cf9ec00e2745d03f8704acf6f6919694ccd9a MIT
+trailofbits-skills https://github.com/trailofbits/skills.git 470419e16f97e112d01fc32f4898aea1755015d9 CC-BY-SA-4.0
+mattpocock-skills https://github.com/mattpocock/skills.git 4ae2317ddb22b046e26455e4f9c9b3aaaf62212d MIT
+huggingface-skills https://github.com/huggingface/skills.git 25910b3d0ba31a2ba102f901cdc9e008c278a69c Apache-2.0

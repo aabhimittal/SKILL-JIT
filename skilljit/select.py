@@ -24,12 +24,14 @@ def select(
     chosen = [i for i, s in enumerate(skills) if s.name in core]
     left = budget - sum(skills[i].body_tokens for i in chosen)
     cand = [i for i, s in enumerate(skills) if s.name not in core and scores[i] >= s_min]
+    if k is not None:
+        # k caps a count, so cut by score first (SPEC §5: top-k, then fit the budget);
+        # cutting by p/t would fill the k slots with tiny low-score skills
+        cand = sorted(cand, key=lambda i: -scores[i])[:k]
     cand.sort(key=lambda i: (-scores[i] / skills[i].body_tokens, -scores[i]))
 
     greedy, used = [], 0
     for i in cand:
-        if k is not None and len(greedy) >= k:
-            break
         if used + skills[i].body_tokens <= left:
             greedy.append(i)
             used += skills[i].body_tokens
