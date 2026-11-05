@@ -17,6 +17,12 @@ def test_k_limits_non_core():
     assert select(mk([10] * 5), [4] * 5, budget=10_000, k=2) == [0, 1]
 
 
+def test_k_cuts_by_score_not_ratio():
+    # regression: tiny low-score skills used to win every k slot on p/t and push out the needed one
+    skills = mk([2000, 100, 100])
+    assert select(skills, [4.0, 0.5, 0.5], budget=8000, k=1, s_min=0) == [0]
+
+
 def test_core_always_included_and_consumes_budget():
     skills = mk([300, 100, 100])
     assert select(skills, [0, 4, 4], budget=400, core=["s0"]) == [0, 1]
