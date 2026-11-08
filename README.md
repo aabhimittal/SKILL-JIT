@@ -58,6 +58,39 @@ The numbers worth reading:
 - No offline backend can say "nothing is needed". On the negatives (trivia, a haiku) it still loads 2–3 skills.
 - Keyword stuffing works on lexical. With `--s-min 0` and no `k` cap, `keyword-magnet` gets selected in 51% of tasks (any decoy: 59%). A `k` cap or `--s-min 2` brings that down to 2–10%, but only because the decoy scores lower than genuinely related skills, not because lexical recognizes it as a decoy.
 
+## M3: pool-size stress test (selection level, offline backends)
+
+Each task gets its own pool: every skill named in its labels (near-duplicate twins included), all 3 decoys, and seeded random distractors up to the target size. Run with `--k 5 --s-min 0 --budget 8000`, 49 tasks.
+
+| backend | pool | recall@1 | recall@5 | selected recall | false loads/neg | decoy rate | load-all tokens | latency |
+|---|---|---|---|---|---|---|---|---|
+| lexical | 10 | 0.81 | 1.00 | 0.90 | 4.8 | 94% | 23k | 0.2 ms |
+| lexical | 50 | 0.74 | 0.93 | 0.80 | 4.8 | 45% | 144k | 1.3 ms |
+| lexical | 200 | 0.45 | 0.84 | 0.64 | 3.8 | 12% | 595k | 5.8 ms |
+| lexical | 376 | 0.39 | 0.72 | 0.56 | 3.2 | 4% | 1.13M | 9.8 ms |
+| embedding-bge | 10 | 0.78 | 1.00 | 0.83 | 4.4 | 100% | 23k | 61 ms |
+| embedding-bge | 50 | 0.62 | 0.90 | 0.69 | 3.6 | 67% | 144k | 62 ms |
+| embedding-bge | 200 | 0.51 | 0.80 | 0.53 | 3.0 | 39% | 595k | 63 ms |
+| embedding-bge | 376 | 0.42 | 0.67 | 0.50 | 3.2 | 24% | 1.13M | 56 ms |
+| embedding (hashing) | 376 | 0.28 | 0.36 | 0.30 | 3.6 | 2% | 1.13M | 46 ms |
+
+How to read it:
+- **Every selector degrades as the pool grows.** From 10 to 376 skills, recall@5 falls from 1.00 to 0.72 (lexical) and from 1.00 to 0.67 (bge). This is the SPEC §7 curve, measured for the selectors. Whether load-all degrades the *agent* needs the agent runs below.
+- **The real embedding model doesn't beat BM25 on this suite.** bge's recall@1 is slightly higher at 376 (0.42 vs 0.39), but its recall@5 and selected recall are lower. One possible cause is the suite itself: I wrote the labels after reading the descriptions (see Known gaps). Labels from logged invocations would show whether it is.
+- **Selection recall stays below recall@5.** The 8k budget drops large needed skills: the cost of the budget, paid in recall.
+- **Neither offline selector can answer "nothing needed".** Both load 3–5 skills per negative task at every pool size.
+- **Decoy rates at pools of 10 and 50 are an artifact of the setup.** All 3 decoys are always in the pool, so at pool 10 they make up 30% of it, and k=5 selects half the pool. Read the decoy rate at 200 and 376 only. At 376, lexical picks a decoy in 4% of tasks and bge in 24%. For bge it's always `keyword-magnet` (12 of 49 tasks); `universal-assistant` (self-promotion) and `injection-probe` are never selected. Similarity selectors fall for keyword stuffing, not persuasion. Persuasion is a threat only to the `llm`/`d1` scorers, which read the text.
+- **Latency:** BM25 grows with the pool (0.2 → 10 ms). bge stays flat at ~60 ms, dominated by embedding the query, because card embeddings are precomputed.
+
+## M3: agent runs (built, not yet run)
+
+`skilljit run` plays out each (method, pool size, task) episode with Claude. The system prompt holds the menu of skill cards, the `Skill` tool returns a skill's SKILL.md, and with fallback on, `find_skills(need)` re-scores the rest of the pool against the task plus the stated need, then returns the top 3 cards as a tool result. History is append-only and the system prompt is cached. Episodes are written one JSONL row each, so a stopped run resumes where it left off.
+
+- **What it measures:** skill-use success (all needed skills loaded), recall/precision of loaded skills, false loads on negatives, decoy loads, context and output tokens, `find_skills` calls, and episodes still unfinished at the turn limit.
+- **What it does not measure:** end-task success. The agent can't execute anything, and the tasks have no fixtures or graders.
+- **Cost (dry run, default grid of 4 pool sizes × 3 methods × 49 tasks = 588 episodes):** ~13.7M context tokens. The `all-cards` method at the full pool accounts for 5.9M of that, because it resends a ~35k-token menu on every call. Caching cuts the input cost on calls 2 and later, but thinking output adds to the bill. Run a `--limit 5` pilot and read the real token counts before the full grid.
+- **Blocked:** no Anthropic API key is available to scripts in this environment, so no episodes have run. No made-up or simulated results stand in for them.
+
 ## Format conventions checked (2026-11)
 
 Surveyed 6 repos (373 skills):
@@ -72,7 +105,7 @@ Surveyed 6 repos (373 skills):
 
 - **Labels are hand-written, not from load-all runs.** SPEC §6 asks for labels from logged invocations, validated by ablation. `skilljit label` implements the extraction (checked on a real Claude Code transcript), but no load-all runs exist yet. Hand labels carry their own bias: I wrote them after reading the descriptions, so keyword overlap may favor `lexical`. I paraphrased tasks away from description wording to reduce that, but haven't measured how much it helped.
 - The suite leans toward science, security and developer tooling, because that's what the pinned repos contain.
-- Lexical and embedding scores are **not calibrated** (lexical is max-normalized; cosine sits near 0.3), so `s_min` only means something for `llm`/`d1`.
+- Lexical and embedding scores are **not calibrated** (lexical is max-normalized; bge gives even unrelated text a cosine of ~0.4), so `s_min` only means something for `llm`/`d1`.
 - `llm` and `d1` have only been tested against fakes. Neither has been called live: no keys in the dev environment.
 - Token counts are a chars/4 estimate.
-- Not built yet: re-scoring on failure (SPEC §5), agent runs across pool sizes (M3), harness plugin (M4).
+- Not run yet: agent episodes and the `llm`/`d1` selectors (both need keys). Not built: a load-all-*bodies* method (at pool ≥200 the bodies exceed a 1M context window anyway), end-task grading, and the harness plugin (M4).
