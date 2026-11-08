@@ -2,7 +2,7 @@
 
 Just-in-time skill and tool loading: score every available skill against the task, load only what the task needs within a token budget. See [SPEC.md](SPEC.md).
 
-Status: **M0 (ingester), M1 (scoring backends) and M2 (task suite + offline eval) done.** M3–M4 not started.
+Status: **M0–M2 done. M3 partly done:** the pool-size sweep and the agent-run harness are built, but the agent runs themselves and the `llm`/`d1` selectors have not run yet (no API keys; see M3 below). M4 not started.
 
 ## Install & run
 
@@ -12,6 +12,10 @@ scripts/fetch_corpus.sh                        # pinned repos -> .corpus-src/, b
 python -m skilljit score corpus.jsonl --task "Fill in this PDF form" --backend lexical
 python -m skilljit eval corpus.jsonl tasks/tasks.jsonl --backend lexical --s-min 0 --k 5
 python -m skilljit label ~/.claude/projects/<proj>/<session>.jsonl --corpus corpus.jsonl  # transcript -> task row
+python -m skilljit eval corpus.jsonl tasks/tasks.jsonl --backend embedding-bge --pool-size 10,50,200,0 --s-min 0 --k 5
+python -m skilljit run corpus.jsonl tasks/tasks.jsonl -o runs.jsonl --dry-run   # episode count + token estimate
+python -m skilljit run corpus.jsonl tasks/tasks.jsonl -o runs.jsonl             # needs ANTHROPIC_API_KEY; resumable
+python -m skilljit report runs.jsonl
 pytest -q
 ```
 
@@ -24,11 +28,12 @@ pytest -q
 | `skilljit/select.py` | Budgeted-recall knapsack: top-k by score if `k` is set, then greedy by score/tokens with a best-single-item fallback; `s_min` and an always-loaded core set. |
 | `skilljit/evaluate.py` | M2. Loads the task suite (labels checked against the corpus) and computes recall@k, selected recall/precision, selected tokens, false loads on negatives, decoy rate, latency. |
 | `skilljit/label.py` | M2. SPEC §6 ground truth: extracts invoked skills (`Skill` tool calls and `Read` of a `SKILL.md`) from Claude Code transcripts into task rows. |
+| `skilljit/agent.py` | M3. Agent episodes: Claude gets a menu of skill cards and a `Skill` tool; with fallback on, `find_skills(need)` re-scores the pool (SPEC §5 recovery). Methods `all-cards`, `jit` and `jit-nofallback`, swept over per-task pool sizes. |
 | `corpus/sources.txt` | 6 public skill repos pinned to commit SHAs, with licenses. |
 | `corpus/decoys/` | 3 adversarial skills (self-promotion, keyword stuffing, prompt-structure injection), flagged `metadata.skilljit-decoy`. |
 | `tasks/tasks.jsonl` | 49 hand-labeled tasks: 44 positives (2 multi-skill) and 5 negatives (`needed: []`). |
 
-Credentials: `ANTHROPIC_API_KEY` (or an `ant auth login` profile) for `llm`; `AIMLAPI_KEY` for `d1`.
+Credentials: `ANTHROPIC_API_KEY` (or an `ant auth login` profile) for `llm` and `run`; `AIMLAPI_KEY` for `d1`. `embedding-bge` needs `pip install -e '.[embed]'` and downloads a ~65MB quantized ONNX model on first use.
 
 ## Task suite format
 

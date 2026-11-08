@@ -134,6 +134,35 @@ class EmbeddingBackend(Backend):
         return [MAX_SCORE * max(0.0, float(x)) for x in sims], None
 
 
+class FastEmbedBackend(EmbeddingBackend):
+    """Real sentence-embedding baseline (fastembed/ONNX, default BAAI/bge-small-en-v1.5).
+
+    Uses the model's query/passage prefixes. Card embeddings are cached by text because a
+    deployed selector would precompute them; reported latency is query embed + similarity.
+    Like any cosine, unrelated pairs still score ~0.4, so 0-4 scores are not calibrated.
+    """
+
+    name = "embedding-bge"
+
+    def __init__(self, model: str = "BAAI/bge-small-en-v1.5"):
+        from fastembed import TextEmbedding  # optional dependency: pip install skill-jit[embed]
+
+        self.model = TextEmbedding(model)
+        self._cards: dict[str, np.ndarray] = {}
+
+    def score(self, task, skills):
+        missing = [s.card for s in skills if s.card not in self._cards]
+        if missing:  # precompute outside the timed scoring call
+            for text, v in zip(missing, self.model.passage_embed(missing)):
+                self._cards[text] = v
+        return super().score(task, skills)
+
+    def _score(self, task, skills):
+        q = next(iter(self.model.query_embed([task])))
+        sims = np.stack([self._cards[s.card] for s in skills]) @ q
+        return [MAX_SCORE * max(0.0, float(x)) for x in sims], None
+
+
 # ---------- shared prompt pieces ----------
 
 def _safe_json(obj) -> str:
@@ -269,6 +298,7 @@ class D1Backend(Backend):
 BACKENDS: dict[str, Callable[[], Backend]] = {
     "lexical": LexicalBackend,
     "embedding": EmbeddingBackend,
+    "embedding-bge": FastEmbedBackend,
     "llm": LLMBackend,
     "d1": D1Backend,
 }
